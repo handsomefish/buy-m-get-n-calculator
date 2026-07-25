@@ -1,0 +1,289 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body {
+  background: #f9f9f9;
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 24px;
+  color: #111;
+  line-height: 1.6;
+}
+
+h1 {
+  font-size: 24px;
+  margin: 0 0 8px 0;
+  color: #111;
+  text-align: center;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+.form-group label {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 16px;
+  font-family: monospace;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.result-area {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+}
+
+.result-title {
+  font-size: 13px;
+  color: #15803d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.summary-line {
+  font-size: 15px;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.summary-line strong {
+  color: #15803d;
+}
+
+.suggestion-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+.suggestion-table th {
+  text-align: center;
+  color: #666;
+  font-weight: 500;
+  padding: 8px 6px;
+  border-bottom: 2px solid #86efac;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.suggestion-table th:first-child {
+  text-align: left;
+}
+
+.suggestion-table td {
+  padding: 8px 6px;
+  color: #111;
+  border-bottom: 1px solid #dcfce7;
+  font-family: monospace;
+  text-align: center;
+}
+
+.suggestion-table td:first-child {
+  text-align: left;
+}
+
+.suggestion-table tr:hover td {
+  background: #dcfce7;
+}
+
+.suggestion-table .best-deal {
+  background: #bbf7d0;
+  font-weight: 600;
+}
+
+.suggestion-table .best-deal td {
+  border-bottom: 1px solid #86efac;
+}
+
+.badge {
+  display: inline-block;
+  background: #15803d;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: system-ui, sans-serif;
+  font-weight: 600;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.discount-tag {
+  color: #15803d;
+  font-size: 11px;
+  font-family: system-ui, sans-serif;
+}
+
+.note {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🛒 買M送N 優惠計算器</h1>
+  <p class="subtitle">改數字即時更新結果</p>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>買幾件 (M)</label>
+      <input type="number" id="buyM" min="1" value="4" oninput="calculate()">
+    </div>
+    <div class="form-group">
+      <label>送幾件 (N)</label>
+      <input type="number" id="freeN" min="1" value="1" oninput="calculate()">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>每件原價 ($)</label>
+      <input type="number" id="price" min="0.01" step="0.01" value="12" oninput="calculate()">
+    </div>
+    <div class="form-group">
+      <label>折扣 (%)</label>
+      <input type="number" id="discount" min="1" max="100" value="100" oninput="calculate()">
+    </div>
+  </div>
+
+  <div class="result-area" id="resultArea">
+    <div class="result-title">📊 建議買法</div>
+    <p class="summary-line" id="summaryLine"></p>
+    <p class="summary-line" id="avgLine"></p>
+    <table class="suggestion-table">
+      <thead>
+        <tr>
+          <th>組數</th>
+          <th>付款件數</th>
+          <th>記得買夠件數</th>
+          <th>埋單價</th>
+          <th>慳咗</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <p class="note">💡 湊夠整組先最抵！改上面數字即時重新計算。</p>
+</div>
+
+<script>
+function calculate() {
+  const m = parseInt(document.getElementById('buyM').value) || 0;
+  const n = parseInt(document.getElementById('freeN').value) || 0;
+  const price = parseFloat(document.getElementById('price').value) || 0;
+  const discountPct = parseFloat(document.getElementById('discount').value) || 100;
+
+  if (m < 1 || n < 1 || price <= 0 || discountPct <= 0) {
+    document.getElementById('resultArea').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('resultArea').style.display = 'block';
+
+  const perSet = m + n;
+  const discountedPrice = price * (discountPct / 100);
+  const avgPerItem = (m * discountedPrice) / perSet;
+  const totalDiscount = Math.round((1 - avgPerItem / price) * 100);
+
+  document.getElementById('summaryLine').innerHTML =
+    '每組：付 <strong>' + m + ' 件</strong>，得 <strong>' + perSet + ' 件</strong>' +
+    (discountPct < 100 ? '（每件折後 $' + discountedPrice.toFixed(2) + '）' : '');
+
+  document.getElementById('avgLine').innerHTML =
+    '平均每件：<strong>$' + avgPerItem.toFixed(2) + '</strong>' +
+    ' <span class="discount-tag">(-' + totalDiscount + '% off 原價)</span>';
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  const maxSets = 6;
+
+  for (let s = 1; s <= maxSets; s++) {
+    const paid = s * m;
+    const got = s * perSet;
+    const total = paid * discountedPrice;
+    const originalTotal = got * price;
+    const saved = originalTotal - total;
+
+    const tr = document.createElement('tr');
+    if (s === 1) {
+      tr.className = 'best-deal';
+    }
+
+    const badge = s === 1 ? '<span class="badge">入門</span>' : '';
+
+    tr.innerHTML =
+      '<td>' + s + ' 組' + badge + '</td>' +
+      '<td>' + paid + ' 件</td>' +
+      '<td>' + got + ' 件</td>' +
+      '<td>$' + total.toFixed(2) + '</td>' +
+      '<td class="discount-tag">-$' + saved.toFixed(2) + '</td>';
+
+    tbody.appendChild(tr);
+  }
+}
+
+// 頁面載入即計算
+calculate();
+</script>
+
+</body>
+</html>
